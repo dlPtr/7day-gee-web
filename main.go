@@ -1,8 +1,8 @@
 package main
 
 import (
-	"7day-go-demo/gee"
 	"fmt"
+	"gee"
 	"net/http"
 )
 
