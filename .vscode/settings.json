@@ -1,0 +1,6 @@
+{
+    "gitlens.currentLine.enabled": false,
+    "plantuml.fileExtensions": ".wsd,.pu,.puml,.plantuml,.iuml.2.2",
+    "plantuml.server": "http://101.34.2.200:6666",
+    "plantuml.render": "PlantUMLServer"
+}

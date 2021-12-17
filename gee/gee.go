@@ -1,42 +1,41 @@
 package gee
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 )
 
-type HandlerFunc func(http.ResponseWriter, *http.Request)
-
+// Engine implement the interface of ServeHTTP
 type Engine struct {
-	router map[string]HandlerFunc
+	router *router
 }
 
+// New is the constructor of gee.Engine
 func New() *Engine {
-	return &Engine{router: make(map[string]HandlerFunc)}
+	return &Engine{router: newRouter()}
 }
 
-func (engine *Engine) addRoute(method string, urlPattern string, handler HandlerFunc) {
-	key := method + "-" + urlPattern
-	engine.router[key] = handler
+func (engine *Engine) addRoute(method string, pattern string, handler HandlerFunc) {
+	log.Printf("Route %4s - %s", method, pattern)
+	engine.router.addRoute(method, pattern, handler)
 }
 
-func (engine *Engine) GET(urlPattern string, handler HandlerFunc) {
-	engine.addRoute("GET", urlPattern, handler)
+// GET defines the method to add GET request
+func (engine *Engine) GET(pattern string, handler HandlerFunc) {
+	engine.addRoute("GET", pattern, handler)
 }
 
-func (engine *Engine) POST(urlPattern string, handler HandlerFunc) {
-	engine.addRoute("POST", urlPattern, handler)
+// POST defines the method to add POST request
+func (engine *Engine) POST(pattern string, handler HandlerFunc) {
+	engine.addRoute("POST", pattern, handler)
 }
 
-func (engine *Engine) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
-	key := req.Method + "-" + req.URL.Path
-	if handler, ok := engine.router[key]; ok {
-		handler(writer, req)
-	} else {
-		fmt.Fprintf(writer, "404 NOT FOUND")
-	}
-}
-
-func (engine *Engine) Run(addr string) error {
+// Run defines the method to start a http server
+func (engine *Engine) Run(addr string) (err error) {
 	return http.ListenAndServe(addr, engine)
+}
+
+func (engine *Engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	c := newContext(w, req)
+	engine.router.handle(c)
 }
