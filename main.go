@@ -1,7 +1,8 @@
 package main
 
 import (
-	"gee"
+	"7day-go-demo/gee"
+	"fmt"
 	"log"
 	"net/http"
 )
@@ -29,5 +30,10 @@ func main() {
 		})
 	})
 
-	r.Run(":9999")
+	if err := r.Run(":9999"); err != nil {
+		fmt.Println("err is", err)
+		return
+	}
+
+	fmt.Println("finish...")
 }
