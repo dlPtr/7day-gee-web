@@ -14,6 +14,21 @@ func main() {
 		c.HTML(http.StatusOK, "<h1> Hey, there!</h1>")
 		log.Printf("/ visited")
 	})
+
+	r.GET("/hello", func(c *gee.Context) {
+		c.String(http.StatusOK, "hey, %s --%s", c.Query("name"), c.Path)
+	})
+
+	r.GET("/hello/:name", func(c *gee.Context) {
+		c.String(http.StatusOK, "hey, %s --%s", c.Params["name"], c.Path)
+	})
+
+	r.GET("/my/hobbies/is/*hobbies", func(c *gee.Context) {
+		c.JSON(http.StatusOK, gee.H{
+			"hobbies": c.Param("hobbies"),
+		})
+	})
+
 	r.POST("/login", func(c *gee.Context) {
 		username := c.PostForm("username")
 		password := c.PostForm("password")
