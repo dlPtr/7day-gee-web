@@ -45,7 +45,7 @@ func (c *Context) Status(code int) {
 }
 
 func (c *Context) SetHeader(key string, val string) {
-	c.Writer.Header()
+	c.Writer.Header().Set(key, val)
 }
 
 func (c *Context) String(code int, format string, values ...interface{}) {
@@ -75,6 +75,6 @@ func (c *Context) HTML(code int, html string) {
 }
 
 func (c *Context) Param(key string) string {
-	val, _ := c.Params[key]
+	val := c.Params[key]
 	return val
 }

@@ -5,19 +5,30 @@ import (
 	"net/http"
 )
 
-// Engine implement the interface of ServeHTTP
-type Engine struct {
-	router *router
-}
+type (
+	// Group implement
+	RouterGroup struct {
+		prefix      string
+		middlewares []HandlerFunc
+		parent      *RouterGroup
+		engine      *Engine
+	}
+
+	// Engine implement the interface of ServeHTTP
+	Engine struct {
+		router *router
+		*RouterGroup
+		groups []*RouterGroup // all groups
+	}
+)
 
 // New is the constructor of gee.Engine
 func New() *Engine {
-	return &Engine{router: newRouter()}
-}
+	engine := &Engine{router: newRouter()}
+	engine.RouterGroup = &RouterGroup{engine: engine}
+	engine.groups = []*RouterGroup{engine.RouterGroup}
 
-func (engine *Engine) addRoute(method string, pattern string, handler HandlerFunc) {
-	log.Printf("Route %4s - %s", method, pattern)
-	engine.router.addRoute(method, pattern, handler)
+	return engine
 }
 
 // GET defines the method to add GET request
@@ -38,4 +49,31 @@ func (engine *Engine) Run(addr string) (err error) {
 func (engine *Engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	c := newContext(w, req)
 	engine.router.handle(c)
+}
+
+// function implements of RouterGroup
+func (g *RouterGroup) Group(prefix string) *RouterGroup {
+	newGroup := &RouterGroup{
+		prefix: g.prefix + prefix,
+		parent: g,
+		engine: g.engine,
+	}
+
+	g.engine.groups = append(g.engine.groups, newGroup)
+	return newGroup
+}
+
+func (g *RouterGroup) addRoute(method string, comp string, handler HandlerFunc) {
+	pattern := g.prefix + comp
+	log.Printf("Route %4s - %s\n", method, pattern)
+	g.engine.router.addRoute(method, pattern, handler)
+}
+
+func (g *RouterGroup) Get(pattern string, handler HandlerFunc) {
+	// FIXME: "GET" is a magic string, so is "POST".
+	g.addRoute("GET", pattern, handler)
+}
+
+func (g *RouterGroup) Post(pattern string, handler HandlerFunc) {
+	g.addRoute("POST", pattern, handler)
 }

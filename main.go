@@ -45,6 +45,48 @@ func main() {
 		})
 	})
 
+	r.GET("/animals", func(c *gee.Context) {
+		c.HTML(http.StatusOK, "ohh, animals! 11")
+	})
+
+	// r.Get("/animals", func(c *gee.Context) {
+	// 	c.HTML(http.StatusOK, "ohh, animals! 22 ")
+	// })
+
+	animalGroup := r.Group("/animals")
+	{
+		animalGroup.Get("/monkey", func(c *gee.Context) {
+			c.SetHeader("x-content-type-options", "nosniff")
+			c.SetHeader("foo", "bar")
+			c.HTML(http.StatusOK, "<html><body><img src='' alt='monkey' /></html></body>")
+		})
+		monkeyGroup := animalGroup.Group("/monkey")
+		{
+			monkeyGroup.Get("/golden", func(c *gee.Context) {
+				c.HTML(http.StatusOK, "<head><meta charset='utf-8'></head>金丝猴")
+			})
+			monkeyGroup.Get("/king", func(c *gee.Context) {
+				c.HTML(http.StatusOK, "<meta charset='utf-8'>孙悟空")
+			})
+		}
+		animalGroup.Get("/pm", func(c *gee.Context) {
+			c.HTML(http.StatusOK, "<meta charset='utf-8'> 社畜、工贼")
+		})
+		pm := animalGroup.Group("/pm")
+		{
+			pm.Get("/sxf", func(c *gee.Context) {
+				c.HTML(http.StatusOK, "pua")
+			})
+		}
+	}
+
+	foodGroup := r.Group("/food")
+	{
+		foodGroup.Get("/sichuan", func(c *gee.Context) {
+			c.HTML(http.StatusOK, "So fucking hot")
+		})
+	}
+
 	if err := r.Run(":9999"); err != nil {
 		fmt.Println("err is", err)
 		return
