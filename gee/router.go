@@ -84,8 +84,12 @@ func (r *router) handle(c *Context) {
 	if n, params := r.getRoute(c.Method, c.Path); n != nil {
 		c.Params = params
 		key := c.Method + "-" + n.pattern
-		r.handlers[key](c)
+		c.handlers = append(c.handlers, r.handlers[key])
+		// r.handlers[key](c) 放到中间件回调的最后面，这行不需要手动触发
 	} else {
-		c.String(http.StatusNotFound, "<h1>404 NOT FOUND: %s</h1>", c.Path)
+		c.handlers = append(c.handlers, func(c *Context) {
+			c.String(http.StatusNotFound, "<h1>404 NOT FOUND: %s</h1>", c.Path)
+		})
 	}
+	c.Next()
 }

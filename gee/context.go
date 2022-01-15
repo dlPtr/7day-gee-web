@@ -20,6 +20,10 @@ type Context struct {
 
 	// response info
 	StatusCode int
+
+	// [...middlewares, handler]
+	handlers []HandlerFunc
+	index    int
 }
 
 func newContext(w http.ResponseWriter, req *http.Request) *Context {
@@ -28,6 +32,7 @@ func newContext(w http.ResponseWriter, req *http.Request) *Context {
 		Req:    req,
 		Path:   req.URL.Path,
 		Method: req.Method,
+		index:  -1,
 	}
 }
 
@@ -77,4 +82,12 @@ func (c *Context) HTML(code int, html string) {
 func (c *Context) Param(key string) string {
 	val := c.Params[key]
 	return val
+}
+
+func (c *Context) Next() {
+	c.index++
+	nHandlers := len(c.handlers)
+	for ; c.index < nHandlers; c.index++ {
+		c.handlers[c.index](c)
+	}
 }
