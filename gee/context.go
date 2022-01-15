@@ -79,6 +79,11 @@ func (c *Context) HTML(code int, html string) {
 	c.Writer.Write([]byte(html))
 }
 
+func (c *Context) HTMLRaw(html string) {
+	c.SetHeader("Content-Type", "text/html")
+	c.Writer.Write([]byte(html))
+}
+
 func (c *Context) Param(key string) string {
 	val := c.Params[key]
 	return val
