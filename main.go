@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go-gee/gee"
 	geeMid "go-gee/gee/middlewares"
+	mid "go-gee/middlewares"
 	"net/http"
 	"text/template"
 )
@@ -50,7 +51,7 @@ func main() {
 			})
 		}
 	}
-	animalGroup.Use(geeMid.SetMetaUtf8())
+	animalGroup.Use(mid.SetMetaUtf8())
 
 	// Day6：注册静态资源、渲染html模板
 	r.Static("/assets", "./static/")
