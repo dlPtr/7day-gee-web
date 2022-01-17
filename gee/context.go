@@ -80,8 +80,7 @@ func (c *Context) HTML(code int, html string) {
 	c.Writer.Write([]byte(html))
 }
 
-func (c *Context) HTMLRaw(html string) {
-	c.SetHeader("Content-Type", "text/html")
+func (c *Context) Raw(html string) {
 	c.Writer.Write([]byte(html))
 }
 

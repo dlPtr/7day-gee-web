@@ -1,3 +1,3 @@
-module 7day-go-demo
+module go-gee
 
 go 1.16

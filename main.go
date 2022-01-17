@@ -1,8 +1,9 @@
 package main
 
 import (
-	"7day-go-demo/gee"
 	"fmt"
+	"go-gee/gee"
+	geeMid "go-gee/gee/middlewares"
 	"net/http"
 	"text/template"
 )
@@ -18,7 +19,7 @@ func main() {
 	r.GET("/", func(c *gee.Context) {
 		c.HTML(http.StatusOK, "<h1>hello, gee!</h1>")
 	})
-	r.Use(gee.Logger(), gee.FakeLogger())
+	r.Use(geeMid.Logger(), geeMid.FakeLogger(), geeMid.Recovery())
 
 	r.GET("/animals", func(c *gee.Context) {
 		c.HTML(http.StatusOK, "ohh, animals! 11")
@@ -49,14 +50,19 @@ func main() {
 			})
 		}
 	}
-	animalGroup.Use(gee.SetMetaUtf8())
+	animalGroup.Use(geeMid.SetMetaUtf8())
 
 	// Day6：注册静态资源、渲染html模板
 	r.Static("/assets", "./static/")
 	r.Static("/css", "./static/css/")
 
 	r.Get("/hello", func(c *gee.Context) {
-		c.HTMLRender(http.StatusOK, "hello.html", map[string]interface{}{"name": "ysb", "age": 24})
+		c.HTMLRender(http.StatusOK, "hello.html", map[string]interface{}{"name": c.Query("name"), "age": 24})
+	})
+
+	r.Get("/panic", func(c *gee.Context) {
+		names := []string{"zhangsan", "lisi"}
+		c.HTML(http.StatusOK, names[3])
 	})
 
 	if err := r.Run(":9999"); err != nil {
