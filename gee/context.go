@@ -12,6 +12,7 @@ type Context struct {
 	// origin objs
 	Writer http.ResponseWriter
 	Req    *http.Request
+	engine *Engine
 
 	// request info
 	Path   string
@@ -82,6 +83,19 @@ func (c *Context) HTML(code int, html string) {
 func (c *Context) HTMLRaw(html string) {
 	c.SetHeader("Content-Type", "text/html")
 	c.Writer.Write([]byte(html))
+}
+
+func (c *Context) Fail(code int, err string) {
+	c.index = len(c.handlers)
+	c.JSON(code, H{"message": err})
+}
+
+func (c *Context) HTMLRender(code int, tplName string, data interface{}) {
+	c.SetHeader("Content-Type", "text/html")
+	c.Status(code)
+	if err := c.engine.htmlTemplates.ExecuteTemplate(c.Writer, tplName, data); err != nil {
+		c.Fail(http.StatusInternalServerError, err.Error())
+	}
 }
 
 func (c *Context) Param(key string) string {

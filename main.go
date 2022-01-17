@@ -4,10 +4,16 @@ import (
 	"7day-go-demo/gee"
 	"fmt"
 	"net/http"
+	"text/template"
 )
 
 func main() {
 	r := gee.New()
+
+	r.SetFuncMap(template.FuncMap{
+		"nameFmt": func(name string) string { return "[" + name + "]" },
+	})
+	r.LoadHTMLGlob("templates/*")
 
 	r.GET("/", func(c *gee.Context) {
 		c.HTML(http.StatusOK, "<h1>hello, gee!</h1>")
@@ -42,8 +48,16 @@ func main() {
 				c.HTML(http.StatusOK, "pua")
 			})
 		}
-		pm.Use(gee.SetMetaUtf8())
 	}
+	animalGroup.Use(gee.SetMetaUtf8())
+
+	// Day6：注册静态资源、渲染html模板
+	r.Static("/assets", "./static/")
+	r.Static("/css", "./static/css/")
+
+	r.Get("/hello", func(c *gee.Context) {
+		c.HTMLRender(http.StatusOK, "hello.html", map[string]interface{}{"name": "ysb", "age": 24})
+	})
 
 	if err := r.Run(":9999"); err != nil {
 		fmt.Println("err is", err)

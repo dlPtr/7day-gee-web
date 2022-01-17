@@ -3,7 +3,9 @@ package gee
 import (
 	"log"
 	"net/http"
+	"path"
 	"strings"
+	"text/template"
 )
 
 type (
@@ -19,7 +21,9 @@ type (
 	Engine struct {
 		router *router
 		*RouterGroup
-		groups []*RouterGroup // all groups
+		groups        []*RouterGroup     // all groups
+		htmlTemplates *template.Template // for html render
+		funcMap       template.FuncMap   // for html render
 	}
 )
 
@@ -49,6 +53,7 @@ func (engine *Engine) Run(addr string) (err error) {
 
 func (engine *Engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	c := newContext(w, req)
+	c.engine = engine
 	for _, eachGroup := range engine.groups {
 		if strings.HasPrefix(req.URL.Path, eachGroup.prefix) {
 			c.handlers = append(c.handlers, eachGroup.middlewares...)
@@ -87,4 +92,35 @@ func (g *RouterGroup) Post(pattern string, handler HandlerFunc) {
 
 func (g *RouterGroup) Use(middleware ...HandlerFunc) {
 	g.middlewares = append(g.middlewares, middleware...)
+}
+
+func (group *RouterGroup) createStaticHandler(relativePath string, fs http.FileSystem) HandlerFunc {
+	absolutePath := path.Join(group.prefix, relativePath)
+	fileServer := http.StripPrefix(absolutePath, http.FileServer(fs))
+	return func(c *Context) {
+		file := c.Param("filepath")
+		// Check if file exists and/or if we have permission to access it
+		if _, err := fs.Open(file); err != nil {
+			c.Status(http.StatusNotFound)
+			return
+		}
+
+		fileServer.ServeHTTP(c.Writer, c.Req)
+	}
+}
+
+// serve static files
+func (group *RouterGroup) Static(relativePath string, root string) {
+	handler := group.createStaticHandler(relativePath, http.Dir(root))
+	urlPattern := path.Join(relativePath, "/*filepath")
+	// Register GET handlers
+	group.Get(urlPattern, handler)
+}
+
+func (engine *Engine) SetFuncMap(funcMap template.FuncMap) {
+	engine.funcMap = funcMap
+}
+
+func (engine *Engine) LoadHTMLGlob(pattern string) {
+	engine.htmlTemplates = template.Must(template.New("").Funcs(engine.funcMap).ParseGlob(pattern))
 }
