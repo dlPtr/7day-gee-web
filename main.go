@@ -41,15 +41,6 @@ func main() {
 				c.HTML(http.StatusOK, "孙悟空")
 			})
 		}
-		animalGroup.Get("/pm", func(c *gee.Context) {
-			c.HTML(http.StatusBadRequest, "社畜、工贼")
-		})
-		pm := animalGroup.Group("/pm")
-		{
-			pm.Get("/sxf", func(c *gee.Context) {
-				c.HTML(http.StatusOK, "pua")
-			})
-		}
 	}
 	animalGroup.Use(mid.SetMetaUtf8())
 
